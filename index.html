@@ -1,0 +1,798 @@
+# RPN计算器 - 功能详解与使用指南
+
+我将把之前的Markdown介绍转换为完整的HTML页面。
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPN计算器 - 功能详解与使用指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #667eea;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        .nav {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            align-self: start;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #4a5568;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+            font-size: 1.4rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .example {
+            background: #edf2f7;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning {
+            background: #fed7d7;
+            border-left: 4px solid #e53e3e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip {
+            background: #c6f6d5;
+            border-left: 4px solid #38a169;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .calculator-demo {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .demo-output {
+            background: #1a202c;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            min-height: 100px;
+        }
+
+        .demo-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .demo-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #4a5568;
+            color: white;
+        }
+
+        .demo-input button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .demo-input button:hover {
+            background: #5a67d8;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>RPN计算器 - 功能详解与使用指南</h1>
+            <p class="subtitle">基于逆波兰表示法的强大命令行计算工具</p>
+        </header>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#overview">概述</a></li>
+                <li><a href="#features">核心功能</a></li>
+                <li><a href="#installation">安装运行</a></li>
+                <li><a href="#usage">使用方法</a></li>
+                <li><a href="#advanced">高级功能</a></li>
+                <li><a href="#errors">错误处理</a></li>
+                <li><a href="#tips">实用技巧</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <main class="main-content">
+                <section id="overview">
+                    <h2>📖 概述</h2>
+                    <p>逆波兰表示法（Reverse Polish Notation，简称RPN）是一种数学表达式表示法，其中运算符位于操作数之后。这种表示法由波兰数学家扬·武卡谢维奇在1920年引入，最大的优点是不需要使用括号来指定运算优先级。</p>
+                    
+                    <div class="example">
+                        <h3>传统表示法 vs RPN表示法</h3>
+                        <p><strong>中缀表达式:</strong> (3 + 4) × 5</p>
+                        <p><strong>RPN表达式:</strong> 3 4 + 5 ×</p>
+                    </div>
+                </section>
+
+                <section id="features">
+                    <h2>🎯 核心功能</h2>
+                    
+                    <h3>基础算术运算</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>运算符</th>
+                                <th>功能说明</th>
+                                <th>示例输入</th>
+                                <th>计算结果</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>+</code></td>
+                                <td>加法运算</td>
+                                <td><code>3 4 +</code></td>
+                                <td>7</td>
+                            </tr>
+                            <tr>
+                                <td><code>-</code></td>
+                                <td>减法运算</td>
+                                <td><code>5 2 -</code></td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td><code>*</code></td>
+                                <td>乘法运算</td>
+                                <td><code>3 4 *</code></td>
+                                <td>12</td>
+                            </tr>
+                            <tr>
+                                <td><code>/</code></td>
+                                <td>除法运算</td>
+                                <td><code>8 2 /</code></td>
+                                <td>4</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>高级数学运算</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>运算符</th>
+                                <th>功能说明</th>
+                                <th>示例输入</th>
+                                <th>计算结果</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>sqrt</code></td>
+                                <td>平方根</td>
+                                <td><code>9 sqrt</code></td>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <td><code>pow</code></td>
+                                <td>幂运算</td>
+                                <td><code>2 3 pow</code></td>
+                                <td>8</td>
+                            </tr>
+                            <tr>
+                                <td><code>sin</code></td>
+                                <td>正弦函数(弧度)</td>
+                                <td><code>3.14159 sin</code></td>
+                                <td>≈0</td>
+                            </tr>
+                            <tr>
+                                <td><code>cos</code></td>
+                                <td>余弦函数(弧度)</td>
+                                <td><code>0 cos</code></td>
+                                <td>1</td>
+                            </tr>
+                            <tr>
+                                <td><code>tan</code></td>
+                                <td>正切函数(弧度)</td>
+                                <td><code>0 tan</code></td>
+                                <td>0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>栈操作命令</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>命令</th>
+                                <th>功能说明</th>
+                                <th>示例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>clear</code></td>
+                                <td>清空整个栈</td>
+                                <td><code>clear</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>display</code></td>
+                                <td>显示当前栈内容</td>
+                                <td><code>display</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>help</code></td>
+                                <td>显示帮助信息</td>
+                                <td><code>help</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="installation">
+                    <h2>🔧 安装与运行</h2>
+                    
+                    <h3>编译步骤</h3>
+                    <div class="code-block">
+# 使用g++编译
+g++ -std=c++11 -o rpn_calculator main.cpp -lm
+
+# 或者使用clang++
+clang++ -std=c++11 -o rpn_calculator main.cpp -lm
+                    </div>
+
+                    <h3>运行程序</h3>
+                    <div class="code-block">
+./rpn_calculator
+                    </div>
+
+                    <p>程序启动后会显示欢迎信息并进入交互模式：</p>
+                    <div class="code-block">
+RPN Calculator started. Type 'help' for instructions.
+> 
+                    </div>
+                </section>
+
+                <section id="usage">
+                    <h2>📝 基本使用方法</h2>
+                    
+                    <h3>1. 简单表达式计算</h3>
+                    <div class="code-block">
+> 3 4 +
+Result: 7
+
+> 5 2 *
+Result: 10
+
+> 8 4 /
+Result: 2
+                    </div>
+
+                    <h3>2. 复杂表达式计算</h3>
+                    <p>RPN的强大之处在于处理复杂表达式时不需要括号：</p>
+                    
+                    <div class="example">
+                        <p><strong>示例1：</strong> (3 + 4) × 5</p>
+                        <div class="code-block">> 3 4 + 5 *
+Result: 35</div>
+                    </div>
+
+                    <div class="example">
+                        <p><strong>示例2：</strong> 5 + ((1 + 2) × 4) - 3</p>
+                        <div class="code-block">> 5 1 2 + 4 * + 3 -
+Result: 14</div>
+                    </div>
+
+                    <h3>计算过程详解：</h3>
+                    <div class="code-block">
+初始栈: []
+输入5: [5]
+输入1: [5, 1]
+输入2: [5, 1, 2]
+输入+: 弹出2和1，计算1+2=3 → [5, 3]
+输入4: [5, 3, 4]
+输入*: 弹出4和3，计算3×4=12 → [5, 12]
+输入+: 弹出12和5，计算5+12=17 → [17]
+输入3: [17, 3]
+输入-: 弹出3和17，计算17-3=14 → [14]
+最终结果: 14
+                    </div>
+                </section>
+
+                <section id="advanced">
+                    <h2>🚀 高级功能</h2>
+                    
+                    <h3>数学函数应用</h3>
+                    
+                    <div class="feature-card">
+                        <h4>平方根计算：</h4>
+                        <div class="code-block">
+> 16 sqrt
+Result: 4
+
+> 2 sqrt
+Result: 1.41421
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>幂运算：</h4>
+                        <div class="code-block">
+> 2 3 pow
+Result: 8
+
+> 5 2 pow
+Result: 25
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>三角函数（注意使用弧度制）：</h4>
+                        <div class="code-block">
+> 0 sin
+Result: 0
+
+> 1.5708 sin    # π/2 ≈ 1.5708
+Result: 1
+
+> 0 cos
+Result: 1
+
+> 3.14159 cos   # π ≈ 3.14159
+Result: -1
+                        </div>
+                    </div>
+
+                    <h3>栈操作技巧</h3>
+                    
+                    <div class="feature-card">
+                        <h4>查看栈状态：</h4>
+                        <div class="code-block">
+> 5 3 8
+Result: 8
+> display
+Stack (top to bottom): 8 3 5 
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>清空栈重新开始：</h4>
+                        <div class="code-block">
+> 1 2 3 4
+Result: 4
+> display
+Stack (top to bottom): 4 3 2 1 
+> clear
+> display
+Stack is empty
+                        </div>
+                    </div>
+                </section>
+
+                <section id="errors">
+                    <h2>⚠️ 错误处理</h2>
+                    <p>计算器提供了详细的错误信息来帮助用户诊断问题：</p>
+
+                    <div class="warning">
+                        <h4>1. 除零错误：</h4>
+                        <div class="code-block">> 5 0 /
+Error: Division by zero</div>
+                    </div>
+
+                    <div class="warning">
+                        <h4>2. 操作数不足：</h4>
+                        <div class="code-block">> +
+Error: Not enough operands for addition
+
+> 5 +
+Error: Not enough operands for addition</div>
+                    </div>
+
+                    <div class="warning">
+                        <h4>3. 无效输入：</h4>
+                        <div class="code-block">> 3 abc +
+Error: Invalid token 'abc'
+
+> 999999999999999999999999999999
+Error: Number out of range '999999999999999999999999999999'</div>
+                    </div>
+
+                    <div class="warning">
+                        <h4>4. 表达式不完整：</h4>
+                        <div class="code-block">> 3 4 + 5
+Error: Invalid expression - stack has 2 elements instead of 1</div>
+                    </div>
+                </section>
+
+                <section id="tips">
+                    <h2>💡 实用技巧</h2>
+                    
+                    <div class="tip">
+                        <h3>1. 表达式构建策略</h3>
+                        <ul>
+                            <li><strong>从左到右</strong>：按运算顺序逐步构建表达式</li>
+                            <li><strong>先内后外</strong>：先计算内部表达式，再处理外部运算</li>
+                            <li><strong>利用栈显示</strong>：使用<code>display</code>命令检查中间结果</li>
+                        </ul>
+                    </div>
+
+                    <div class="tip">
+                        <h3>2. 复杂表达式分解</h3>
+                        <p>将复杂的中缀表达式转换为RPN的步骤：</p>
+                        <p><strong>示例：</strong> (2 + 3) × (8 - 4) ÷ 2</p>
+                        
+                        <p><strong>步骤1：</strong> 计算 2 + 3</p>
+                        <div class="code-block">> 2 3 +
+Result: 5</div>
+
+                        <p><strong>步骤2：</strong> 计算 8 - 4</p>
+                        <div class="code-block">> 8 4 -
+Result: 4</div>
+
+                        <p><strong>步骤3：</strong> 相乘并除以2</p>
+                        <div class="code-block">> 5 4 * 2 /
+Result: 10</div>
+                    </div>
+
+                    <div class="tip">
+                        <h3>3. 弧度与角度转换</h3>
+                        <p>由于三角函数使用弧度制，如需使用角度：</p>
+                        <div class="code-block">
+# 计算 sin(30°)
+> 30 3.14159 * 180 / sin
+Result: 0.5
+
+# 计算 cos(60°)
+> 60 3.14159 * 180 / cos
+Result: 0.5
+                        </div>
+                    </div>
+
+                    <h3>🎓 学习RPN的优势</h3>
+                    <ul>
+                        <li><strong>无歧义性</strong>：不需要括号，运算顺序明确</li>
+                        <li><strong>易于实现</strong>：算法简单，适合计算机处理</li>
+                        <li><strong>计算效率</strong>：单次扫描即可完成计算</li>
+                        <li><strong>教育价值</strong>：帮助理解栈数据结构的应用</li>
+                    </ul>
+
+                    <h3>🔚 退出程序</h3>
+                    <p>使用以下命令退出计算器：</p>
+                    <div class="code-block">
+> quit
+Goodbye!
+                    </div>
+                    <p>或者：</p>
+                    <div class="code-block">
+> exit
+Goodbye!
+                    </div>
+                </section>
+            </main>
+
+            <aside class="sidebar">
+                <h2>快速参考</h2>
+                
+                <div class="feature-card">
+                    <h3>基础运算</h3>
+                    <p><code>+</code> - 加法</p>
+                    <p><code>-</code> - 减法</p>
+                    <p><code>*</code> - 乘法</p>
+                    <p><code>/</code> - 除法</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>高级函数</h3>
+                    <p><code>sqrt</code> - 平方根</p>
+                    <p><code>pow</code> - 幂运算</p>
+                    <p><code>sin/cos/tan</code> - 三角函数</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>栈操作</h3>
+                    <p><code>clear</code> - 清空栈</p>
+                    <p><code>display</code> - 显示栈</p>
+                    <p><code>help</code> - 帮助</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>示例表达式</h3>
+                    <p><code>3 4 +</code> = 7</p>
+                    <p><code>5 1 2 + 4 * + 3 -</code> = 14</p>
+                    <p><code>9 sqrt</code> = 3</p>
+                    <p><code>2 3 pow</code> = 8</p>
+                </div>
+
+                <div class="calculator-demo">
+                    <h3 style="color: white;">交互演示</h3>
+                    <div class="demo-output" id="demoOutput">
+RPN Calculator Demo
+输入表达式开始计算...
+                    </div>
+                    <div class="demo-input">
+                        <input type="text" id="demoInput" placeholder="输入RPN表达式...">
+                        <button onclick="evaluateRPN()">计算</button>
+                    </div>
+                    <button onclick="clearDemo()" style="width: 100%; margin-top: 10px; background: #e53e3e;">清空</button>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="footer">
+            <p>RPN计算器 &copy; 2024 - 基于C++实现的逆波兰表示法计算工具</p>
+        </footer>
+    </div>
+
+    <script>
+        // 简单的RPN计算演示
+        function evaluateRPN() {
+            const input = document.getElementById('demoInput').value;
+            const output = document.getElementById('demoOutput');
+            
+            if (!input.trim()) {
+                output.innerHTML = '请输入有效的RPN表达式';
+                return;
+            }
+
+            try {
+                // 简单的演示计算（实际实现更复杂）
+                const tokens = input.split(' ');
+                const stack = [];
+                let steps = '';
+                
+                for (const token of tokens) {
+                    if (!isNaN(token)) {
+                        stack.push(parseFloat(token));
+                        steps += `输入 ${token}: 栈 → [${stack.join(', ')}]<br>`;
+                    } else {
+                        if (stack.length < 2 && token !== 'sqrt') {
+                            throw new Error('操作数不足');
+                        }
+                        
+                        let result;
+                        switch(token) {
+                            case '+':
+                                result = stack.pop() + stack.pop();
+                                break;
+                            case '-':
+                                const b = stack.pop();
+                                const a = stack.pop();
+                                result = a - b;
+                                break;
+                            case '*':
+                                result = stack.pop() * stack.pop();
+                                break;
+                            case '/':
+                                const divisor = stack.pop();
+                                const dividend = stack.pop();
+                                if (divisor === 0) throw new Error('除零错误');
+                                result = dividend / divisor;
+                                break;
+                            case 'sqrt':
+                                result = Math.sqrt(stack.pop());
+                                break;
+                            default:
+                                throw new Error(`未知运算符: ${token}`);
+                        }
+                        
+                        stack.push(result);
+                        steps += `运算 ${token}: 结果 ${result} → 栈 [${stack.join(', ')}]<br>`;
+                    }
+                }
+                
+                if (stack.length !== 1) {
+                    throw new Error('表达式不完整');
+                }
+                
+                output.innerHTML = `<strong>表达式:</strong> ${input}<br><br>
+                                  <strong>计算过程:</strong><br>${steps}<br>
+                                  <strong>最终结果:</strong> ${stack[0]}`;
+                                  
+            } catch (error) {
+                output.innerHTML = `<strong>表达式:</strong> ${input}<br><br>
+                                  <strong style="color: #e53e3e;">错误:</strong> ${error.message}`;
+            }
+            
+            document.getElementById('demoInput').value = '';
+        }
+
+        function clearDemo() {
+            document.getElementById('demoOutput').innerHTML = 'RPN Calculator Demo<br>输入表达式开始计算...';
+            document.getElementById('demoInput').value = '';
+        }
+
+        // 允许按Enter键计算
+        document.getElementById('demoInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                evaluateRPN();
+            }
+        });
+
+        // 平滑滚动导航
+        document.querySelectorAll('.nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                document.querySelector(targetId).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
